@@ -1,0 +1,1376 @@
+import customtkinter
+import tkinter as tk
+from tkinter import filedialog, messagebox, simpledialog
+import os
+import json
+import threading
+import urllib.request
+import urllib.error
+import zipfile
+import io
+import shutil
+import ctypes
+import string
+import random
+import subprocess
+import webbrowser
+import sys
+import time
+from PIL import Image
+
+# --- НОВА БІБЛІОТЕКА ДЛЯ ТРЕЮ ---
+try
+    import pystray
+    from pystray import MenuItem as item
+except ImportError
+    pystray = None  # Fallback якщо не встановлено
+
+# --- ГЛОБАЛЬНІ НАЛАШТУВАННЯ ---
+SETTINGS_FILE = settings_pvp.json
+CACHE_FILE = cache_data.json
+APP_VERSION_NUM = 1.0.2
+APP_VERSION = fv{APP_VERSION_NUM} (Global update)
+AUTHOR = Том Херсон  Tom Kherson
+
+# GITHUB
+GITHUB_USER = ttommid1488
+GITHUB_REPO = VolyaManager-Updates
+CATALOG_URL = fhttpsraw.githubusercontent.com{GITHUB_USER}{GITHUB_REPO}maincatalog.json
+
+customtkinter.set_appearance_mode(Dark)
+customtkinter.set_default_color_theme(blue)
+
+# --- ШРИФТИ ---
+FONT_MAIN = (Segoe UI, 12)
+FONT_BOLD = (Segoe UI, 12, bold)
+FONT_HEADER = (Segoe UI, 13, bold)
+FONT_SMALL = (Segoe UI, 10)
+
+# --- КОЛЬОРИ ---
+COLOR_BG_MAIN = #2E2E2E
+COLOR_BG_ROW_1 = #383838
+COLOR_BG_ROW_2 = #333333
+COLOR_HEADER_BG = #202020
+COLOR_GROUP_BG = #404040
+COLOR_GROUP_HOVER = #4D4D4D
+COLOR_INFO_BG = #252525
+
+COLOR_YELLOW = #FFDA00
+COLOR_BLUE = #0057B8
+COLOR_RED = #C62828
+COLOR_RED_HOVER = #8E0000
+COLOR_GREEN = #4CAF50
+COLOR_GREEN_HOVER = #388E3C
+
+COLOR_TEXT_BTN = #000000
+COLOR_TEXT_WHITE = #FFFFFF
+COLOR_DISABLED = #555555
+
+# --- ТЕМИ ---
+THEMES = {
+    Blue (Default) {main #0057B8, hover #FFDA00, text #000000, progress #4CAF50},
+    Horde (Red) {main #8C1616, hover #FFDA00, text #FFFFFF, progress #FF5722},
+    Ukraine (Gold) {main #FFDA00, hover #0057B8, text #000000, progress #0057B8},
+    Void (Purple) {main #673AB7, hover #9C27B0, text #FFFFFF, progress #E040FB}
+}
+
+# --- USER AGENTS ---
+USER_AGENTS = [
+    'Mozilla5.0 (Windows NT 10.0; Win64; x64) AppleWebKit537.36 (KHTML, like Gecko) Chrome91.0.4472.124 Safari537.36',
+    'Mozilla5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit605.1.15 (KHTML, like Gecko) Version14.1.1 Safari605.1.15',
+]
+
+# --- ВБУДОВАНИЙ КАТАЛОГ (Базовий) ---
+DEFAULT_CATALOG = {
+    Gladius {provider wago, slug gladius, match Gladius, group group_pvp, extra_folders [],
+                desc_uk Фрейми для PvP арени., desc_en PvP Arena frames.},
+    Details! {provider github, repo TerciooDetails-Damage-Meter, match Details,
+                 group group_stats,
+                 extra_folders [Details_TinyThreat, Details_Streamer, Details_RaidCheck, Details_DataStorage,
+                                   Details_EncounterDetails], desc_uk ДПС метр., desc_en DPS Meter.},
+    Deadly Boss Mods {provider github, repo DeadlyBossModsDeadlyBossMods, match DBM-Core,
+                         group group_raid,
+                         extra_folders [DBM-GUI, DBM-StatusBarTimers, DBM-DefaultSkin, DBM-Challenges,
+                                           DBM-Raids-WarWithin], desc_uk Бос-мод для рейдів.,
+                         desc_en Raid boss mods.},
+    # ... (Тут має бути ваш повний список з 60 аддонів, скорочено для економії місця, але він підтягнеться з файлу catalog.json з інтернету) ...
+}
+
+# Щоб програма працювала навіть без інтернету, ініціалізуємо базовим
+ADDON_CATALOG = DEFAULT_CATALOG.copy()
+
+# --- ПАКЕТИ ---
+PRESETS = {
+    PvP Pack [Gladius, OmniBar, BigDebuffs, BattleGroundEnemies, Capping],
+    Raid Pack [Deadly Boss Mods, GTFO, Details!, WeakAuras],
+    Healer Pack [Cell, VuhDo, HealBot, BigDebuffs],
+    UI Pack [ElvUI, Plater, Bagnon, HandyNotes]
+}
+
+GROUP_ORDER = [group_pvp, group_raid, group_frames, group_stats, group_ui, group_bag, group_map]
+ONLINE_CACHE = {}
+
+COL_W_CHECK = 30
+COL_W_NAME = 250
+COL_W_LOCAL = 140
+COL_W_REMOTE = 140
+COL_W_AUTO = 60
+COL_W_ACTION = 240
+ROW_HEIGHT = 45
+
+EXPANSIONS = {
+    The War Within (11.x) 11,
+    Dragonflight (10.x) 10,
+    Shadowlands (9.x) 9,
+    Battle for Azeroth (8.x) 8,
+    Legion (7.x) 7,
+}
+DEFAULT_EXPANSION = The War Within (11.x)
+
+# --- СЛОВНИК МОВ ---
+TEXTS = {
+    uk {
+        title fВОЛЯ Manager - {APP_VERSION},
+        path_btn 📂 Шлях,
+        auto_btn ⚡ Auto (Пошук),
+        scan_btn 🔎 Сканувати,
+        play_btn ▶ Грати,
+        splash_title fВОЛЯ Manager,
+        splash_loading Ініціалізація компонентів...,
+        settings_btn ⚙️,
+        header_name НАЗВА АДДОНУ,
+        header_local ВСТАНОВЛЕНО,
+        header_remote ОСТАННЯ ВЕРСІЯ,
+        header_auto АВТО,
+        header_action ДІЯ,
+        status_ready Готово.,
+        status_loading Завантаження...,
+        btn_install Встановити,
+        btn_update Оновити,
+        btn_ok ✓ Готово,
+        btn_no_data Немає даних,
+        btn_delete Видалити,
+        btn_delete_title Видалення,
+        btn_delete_confirm Ви точно хочете видалити,
+        group_pvp ⚔️ PvP (АренаБГ),
+        group_raid 💀 Рейди,
+        group_ui 🎨 Інтерфейс,
+        group_frames 🏥 Рейд Фрейми,
+        group_stats 📊 Статистика,
+        group_bag 🎒 Інвентар,
+        group_map 🗺️ Карта,
+        info_label Про програму,
+        dev_label Розробник,
+        author_name Том Херсон,
+        lang_label Мова  Language,
+        search_placeholder Введіть назву аддону...,
+        msg_auto_success Знайдено,
+        msg_auto_fail WoW не знайдено.,
+        msg_install_ok Встановлено!,
+        msg_error Помилка,
+        lbl_outdated Оновіть!,
+        lbl_actual Актуально,
+        lbl_game_ver Версія гри,
+        msg_close_wow Закрийте гру WoW!,
+        slogan Слава Україні!,
+        switch_auto_update Авто-оновлення при скануванні,
+        btn_clear_cache Очистити кеш,
+        btn_open_folder Відкрити папку,
+        btn_full_exit ❌ Повний вихід,  # NEW
+        msg_cache_cleared Кеш очищено!,
+        lbl_backup Резервне копіювання (WTF),
+        btn_backup 💾 Створити Backup,
+        btn_restore ♻️ Відновити Backup,
+        msg_backup_ok Backup створено успішно!,
+        msg_restore_ok Налаштування відновлено!,
+        lbl_presets Встановити пакет аддонів,
+        btn_install_pack Встановити Пакет,
+        msg_game_running Гра запущена...,
+        btn_about ℹ️ Про програму,
+        btn_batch_install Встановити вибрані,
+        btn_search_web 🔎 Знайти в Web,
+        lbl_theme Тема  Theme,
+        btn_export 📤 Експорт профілю,
+        btn_import 📥 Імпорт профілю,
+        switch_startup Запускати при старті Windows,
+        lbl_custom_install Встановити за посиланням (GitHub),
+        btn_install_url Завантажити,
+        msg_update_avail Доступна нова версія програми!,
+        msg_download_update Завантажити оновлення,
+        tray_show Відкрити,
+        tray_exit Вихід
+    },
+    en {
+        title fVOLYA Manager - {APP_VERSION},
+        path_btn 📂 Path,
+        auto_btn ⚡ Auto (Search),
+        scan_btn 🔎 Scan,
+        play_btn ▶ Play,
+        settings_btn ⚙️,
+        splash_title VOLYA Manager,
+        splash_loading Initializing components...,
+        header_name ADDON NAME,
+        header_local INSTALLED,
+        header_remote LATEST VERSION,
+        header_auto AUTO,
+        header_action ACTION,
+        status_ready Ready.,
+        status_loading Loading...,
+        btn_install Install,
+        btn_update Update,
+        btn_ok ✓ Done,
+        btn_no_data No Data,
+        btn_delete Delete,
+        btn_delete_title Delete,
+        btn_delete_confirm Are you sure you want to delete,
+        group_pvp ⚔️ PvP (ArenaBG),
+        group_raid 💀 Raids,
+        group_ui 🎨 Interface,
+        group_frames 🏥 Raid Frames,
+        group_stats 📊 Statistics,
+        group_bag 🎒 Inventory,
+        group_map 🗺️ Map,
+        info_label About,
+        dev_label Developer,
+        author_name Tom Kherson,
+        lang_label Language  Мова,
+        search_placeholder Type here to search...,
+        msg_auto_success Found,
+        msg_auto_fail WoW not found.,
+        msg_install_ok Installed!,
+        msg_error Error,
+        lbl_outdated Update!,
+        lbl_actual Actual,
+        lbl_game_ver Game Ver,
+        msg_close_wow Close WoW game!,
+        slogan Glory to Ukraine!,
+        switch_auto_update Auto-update on scan,
+        btn_clear_cache Clear Cache,
+        btn_open_folder Open Folder,
+        btn_full_exit ❌ Full Exit,  # NEW
+        msg_cache_cleared Cache cleared!,
+        lbl_backup Backup Settings (WTF),
+        btn_backup 💾 Create Backup,
+        btn_restore ♻️ Restore Backup,
+        msg_backup_ok Backup created successfully!,
+        msg_restore_ok Settings restored!,
+        lbl_presets Install Addon Pack,
+        btn_install_pack Install Pack,
+        msg_game_running Game running...,
+        btn_about ℹ️ About,
+        btn_batch_install Install Selected,
+        btn_search_web 🔎 Search Web,
+        lbl_theme Theme  Тема,
+        btn_export 📤 Export Profile,
+        btn_import 📥 Import Profile,
+        switch_startup Run on Windows Startup,
+        lbl_custom_install Install from URL (GitHub),
+        btn_install_url Download,
+        msg_update_avail New version available!,
+        msg_download_update Download update,
+        tray_show Show,
+        tray_exit Exit
+    }
+}
+
+
+def get_file_version_info(filename)
+    try
+        if not os.path.isfile(filename) return None
+        ver_info_size = ctypes.windll.version.GetFileVersionInfoSizeW(filename, None)
+        if not ver_info_size return None
+        res_data = ctypes.create_string_buffer(ver_info_size)
+        ctypes.windll.version.GetFileVersionInfoW(filename, None, ver_info_size, res_data)
+        r = ctypes.c_void_p();
+        l = ctypes.c_uint()
+        ctypes.windll.version.VerQueryValueW(res_data, , ctypes.byref(r), ctypes.byref(l))
+
+        class VS(ctypes.Structure)
+            _fields_ = [('dwSignature', ctypes.c_long), ('dwStrucVersion', ctypes.c_long),
+                        ('dwFileVersionMS', ctypes.c_long), ('dwFileVersionLS', ctypes.c_long),
+                        ('dwProductVersionMS', ctypes.c_long), ('dwProductVersionLS', ctypes.c_long)]
+
+        ffi = ctypes.cast(r, ctypes.POINTER(VS)).contents
+        return f{ffi.dwProductVersionMS  16}.{ffi.dwProductVersionMS & 0xFFFF}
+    except
+        return None
+
+
+def get_available_drives()
+    drives = []
+    bitmask = ctypes.windll.kernel32.GetLogicalDrives()
+    for letter in string.ascii_uppercase
+        if bitmask & 1 drives.append(f{letter})
+        bitmask = 1
+    return drives
+
+
+class AddonManagerApp(customtkinter.CTk)
+    def __init__(self)
+        super().__init__()
+
+        self.settings = {}
+        self.batch_vars = {}
+        self.auto_vars = {}
+        self.icon_settings = None
+        self.icon_gerb = None
+        self.status_timer_id = None
+        self.installed_memory = {}
+        self.tray_icon = None
+
+        self.load_settings()  # --- ТУТ ми дізнаємося мову (self.current_lang)
+        self.load_cache()
+
+        self.current_lang = self.settings.get(lang, uk)
+
+        # --- 1. SPLASH SCREEN START ---
+        self.withdraw()  # Ховаємо головне вікно
+        self.splash = customtkinter.CTkToplevel(self)
+        self.splash.overrideredirect(True)  # Без рамок
+        self.splash.geometry(400x250)
+
+        # Центруємо сплеш
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        x = (screen_width - 400)  2
+        y = (screen_height - 250)  2
+        self.splash.geometry(f400x250+{x}+{y})
+        self.splash.configure(fg_color=#1A1A1A)
+
+        # Логотип і текст на сплеші
+        customtkinter.CTkLabel(self.splash, text=self.t(splash_title), font=(Segoe UI, 24, bold),
+                               text_color=#0057B8).pack(pady=(60, 10))
+        customtkinter.CTkLabel(self.splash, text=self.t(splash_loading), font=(Segoe UI, 12), text_color=gray).pack()
+
+        splash_prog = customtkinter.CTkProgressBar(self.splash, width=300, mode=indeterminate,
+                                                   progress_color=#FFDA00)
+        splash_prog.pack(pady=20)
+        splash_prog.start()
+
+        # Оновлення вікна сплеша
+        self.splash.update()
+        # -------------------------------
+
+        self.settings = {}
+        self.batch_vars = {}
+        self.auto_vars = {}
+        self.icon_settings = None
+        self.icon_gerb = None
+        self.status_timer_id = None
+        self.installed_memory = {}
+        self.tray_icon = None
+
+        # Завантаження в фоні поки висить сплеш
+        self.load_settings()
+        self.load_cache()
+
+        self.current_lang = self.settings.get(lang, uk)
+        self.current_theme = self.settings.get(theme, Blue (Default))
+        self.game_version_str = self.settings.get(game_version_str, ---)
+        self.game_exe_path = self.settings.get(game_exe_path, )
+        self.installed_memory = self.settings.get(installed_memory, {})
+        self.auto_update_enabled = tk.BooleanVar(value=self.settings.get(auto_update, False))
+        self.run_on_startup = tk.BooleanVar(value=self.settings.get(run_on_startup, False))
+        self.ignored_addons = set(self.settings.get(ignored_addons, []))
+
+        self.apply_theme_colors(self.current_theme)
+
+        self.title(self.t(title))
+        self.geometry(1200x900)
+        self.configure(fg_color=COLOR_BG_MAIN)
+        self.grid_rowconfigure(4, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
+        # Примусове закриття в трей
+        self.protocol(WM_DELETE_WINDOW, self.minimize_to_tray)
+
+        # Ініціалізація
+        self.load_icons()
+        self.addon_path = tk.StringVar(value=self.settings.get(path, ))
+        self.selected_expansion = tk.StringVar(value=self.settings.get(expansion, The War Within (11.x)))
+        self.search_var = tk.StringVar()
+        self.search_var.trace_add(write, self.on_search)
+        self.custom_url_var = tk.StringVar()
+        self.group_states = self.settings.get(groups, {g True for g in GROUP_ORDER})
+
+        self.create_ui()
+
+        # --- ЗАВЕРШЕННЯ ЗАВАНТАЖЕННЯ ---
+        self.after(1500, self.finish_loading)  # Штучна затримка для краси
+
+    def finish_loading(self)
+        if self.addon_path.get()
+            self.refresh_ui_list()
+
+        if self.run_on_startup.get()
+            self.set_startup(True)
+
+        threading.Thread(target=self.check_program_update).start()
+        threading.Thread(target=self.download_remote_catalog).start()
+
+        self.splash.destroy()  # Закриваємо заставку
+        self.deiconify()  # Показуємо головне вікно
+        self.state('zoomed')  # Розгортаємо на весь екран (Windows)
+
+    # --- TRAY LOGIC ---
+    def minimize_to_tray(self)
+        if pystray
+            self.withdraw()
+            image = Image.open(assetsicon.ico) if os.path.exists(assetsicon.ico) else Image.new('RGB', (64, 64),
+                                                                                                      color='blue')
+
+            menu = (
+                item(self.t(tray_show), self.show_from_tray, default=True),
+                item(self.t(tray_exit), self.quit_app)
+            )
+            self.tray_icon = pystray.Icon(VolyaManager, image, Volya Manager, menu)
+            # Запускаємо в окремому потоці, щоб не блокувати
+            threading.Thread(target=self.tray_icon.run).start()
+        else
+            # Якщо бібліотеки немає, просто закриваємося як зазвичай (або звертаємо)
+            self.iconify()
+
+    def show_from_tray(self)
+        if self.tray_icon
+            self.tray_icon.stop()
+        self.after(0, self.deiconify)
+
+    def quit_app(self)
+        if self.tray_icon
+            self.tray_icon.stop()
+        self.quit()
+
+    # --- INITS ---
+    def apply_theme_colors(self, theme_name)
+        theme = THEMES.get(theme_name, THEMES[Blue (Default)])
+        global COLOR_BLUE, COLOR_YELLOW, COLOR_GREEN
+        COLOR_BLUE = theme[main]
+        COLOR_YELLOW = theme[hover]
+        COLOR_GREEN = theme[progress]
+
+    def load_icons(self)
+        if getattr(sys, 'frozen', False)
+            application_path = sys._MEIPASS
+        else
+            application_path = os.path.dirname(os.path.abspath(__file__))
+        assets_dir = os.path.join(application_path, assets)
+
+        icon_path = os.path.join(assets_dir, icon.ico)
+        if os.path.exists(icon_path)
+            try
+                self.iconbitmap(icon_path)
+            except
+                pass
+
+        settings_path = os.path.join(assets_dir, settings.png)
+        if os.path.exists(settings_path)
+            try
+                img = Image.open(settings_path)
+                self.icon_settings = customtkinter.CTkImage(light_image=img, dark_image=img, size=(20, 20))
+            except
+                self.icon_settings = None
+        else
+            self.icon_settings = None
+
+        gerb_path = os.path.join(assets_dir, gerb.png)
+        if os.path.exists(gerb_path)
+            try
+                img_g = Image.open(gerb_path)
+                self.icon_gerb = customtkinter.CTkImage(light_image=img_g, dark_image=img_g, size=(30, 30))
+            except
+                self.icon_gerb = None
+        else
+            self.icon_gerb = None
+
+    def t(self, key)
+        return TEXTS.get(self.current_lang, TEXTS[uk]).get(key, key)
+
+    def load_settings(self)
+        try
+            with open(SETTINGS_FILE, r) as f
+                self.settings = json.load(f)
+        except Exception
+            self.settings = {}
+
+    def save_settings(self)
+        self.settings[path] = self.addon_path.get()
+        self.settings[expansion] = self.selected_expansion.get()
+        self.settings[lang] = self.current_lang
+        self.settings[theme] = self.current_theme
+        self.settings[groups] = self.group_states
+        self.settings[game_version_str] = self.game_version_str
+        self.settings[game_exe_path] = self.game_exe_path
+        self.settings[installed_memory] = self.installed_memory
+        self.settings[auto_update] = self.auto_update_enabled.get()
+        self.settings[run_on_startup] = self.run_on_startup.get()
+        self.settings[ignored_addons] = list(self.ignored_addons)
+        with open(SETTINGS_FILE, w) as f json.dump(self.settings, f)
+
+    def load_cache(self)
+        global ONLINE_CACHE
+        try
+            with open(CACHE_FILE, r) as f
+                ONLINE_CACHE = json.load(f)
+        except
+            ONLINE_CACHE = {}
+
+    def save_cache(self)
+        with open(CACHE_FILE, w) as f json.dump(ONLINE_CACHE, f)
+
+    def set_temporary_status(self, text, color=None)
+        if color is None color = COLOR_GREEN
+        if self.status_timer_id
+            self.after_cancel(self.status_timer_id)
+        self.status.configure(text=text, text_color=color)
+        self.status_timer_id = self.after(4000,
+                                          lambda self.status.configure(text=self.t(status_ready), text_color=gray))
+
+    def setup_hover_effect(self, btn)
+        theme_text = THEMES[self.current_theme][text]
+        btn.bind(Enter, lambda e btn.configure(text_color=theme_text))
+        btn.bind(Leave, lambda e btn.configure(text_color=theme_text))
+
+    def download_remote_catalog(self)
+        global ADDON_CATALOG
+        url = fhttpsraw.githubusercontent.com{GITHUB_USER}{GITHUB_REPO}maincatalog.json
+        try
+            req = urllib.request.Request(url, headers={'User-Agent' 'Mozilla5.0'})
+            with urllib.request.urlopen(req, timeout=5) as response
+                data = json.loads(response.read())
+                if data
+                    # ЗАХИСТ Якщо на сервері менше аддонів, ніж у нас - не оновлюємо!
+                    if len(data)  len(ADDON_CATALOG)
+                        ADDON_CATALOG = data
+                        self.after(0, self.refresh_ui_list)
+                        print(Каталог оновлено з GitHub.)
+                    else
+                        print(Локальний каталог новіший або такий самий.)
+        except Exception as e
+            print(fCatalog update failed {e})
+
+    def check_program_update(self)
+        try
+            api_url = fhttpsapi.github.comrepos{GITHUB_USER}{GITHUB_REPO}releaseslatest
+            req = urllib.request.Request(api_url, headers={'User-Agent' 'Mozilla5.0'})
+            with urllib.request.urlopen(req) as response
+                data = json.loads(response.read())
+                remote_tag_raw = data.get(tag_name, )
+
+                clean_remote = remote_tag_raw.lower().replace(v, ).split(-)[0]
+                clean_local = APP_VERSION_NUM.lower().replace(v, ).split(-)[0]
+
+                try
+                    local_parts = tuple(map(int, clean_local.split(.)))
+                    remote_parts = tuple(map(int, clean_remote.split(.)))
+
+                    if remote_parts  local_parts
+                        download_url = data[html_url]
+                        for asset in data.get(assets, [])
+                            if asset[name].endswith(.exe)
+                                download_url = asset[browser_download_url]
+                                break
+                        self.after(0, lambda self.show_update_dialog(remote_tag_raw, download_url))
+                except Exception as e
+                    print(fError parsing version {e})
+        except Exception as e
+            print(fAuto-update check failed {e})
+
+    def show_update_dialog(self, new_ver, url)
+        msg = f{self.t('msg_update_avail')} ({new_ver})n{self.t('msg_download_update')}
+        if messagebox.askyesno(Update, msg)
+            webbrowser.open(url)
+            self.destroy()
+
+    def launch_game(self)
+        if self.game_exe_path and os.path.exists(self.game_exe_path)
+            try
+                subprocess.Popen([self.game_exe_path])
+                self.set_temporary_status(self.t(msg_game_running), COLOR_GREEN)
+            except Exception as e
+                messagebox.showerror(Error, str(e))
+        else
+            self.start_deep_search()
+            messagebox.showinfo(Info, First use Auto Search to find WoW.)
+
+    def set_startup(self, enable)
+        startup_folder = os.path.join(os.getenv('APPDATA'), r'MicrosoftWindowsStart MenuProgramsStartup')
+        link_path = os.path.join(startup_folder, VOLYA_Manager.bat)
+        if enable
+            exe_path = os.path.abspath(sys.argv[0])
+            with open(link_path, w) as f
+                f.write(f'start  {exe_path}')
+        else
+            if os.path.exists(link_path)
+                os.remove(link_path)
+
+    def create_ui(self)
+        top = customtkinter.CTkFrame(self, fg_color=transparent)
+        top.grid(row=0, column=0, sticky=ew, padx=10, pady=(10, 5))
+
+        btn_path = customtkinter.CTkButton(top, text=self.t(path_btn), width=60, font=FONT_BOLD,
+                                           command=self.select_folder,
+                                           text_color=COLOR_TEXT_BTN,
+                                           fg_color=COLOR_BLUE, hover_color=COLOR_YELLOW)
+        btn_path.pack(side=left, padx=5)
+
+        customtkinter.CTkLabel(top, textvariable=self.addon_path, text_color=gray, font=FONT_MAIN).pack(side=left,
+                                                                                                          padx=5)
+
+        btn_auto = customtkinter.CTkButton(top, text=self.t(auto_btn), width=120, font=FONT_BOLD,
+                                           fg_color=COLOR_BLUE, hover_color=COLOR_YELLOW,
+                                           text_color=COLOR_TEXT_BTN,
+                                           command=self.start_deep_search)
+        btn_auto.pack(side=left, padx=10)
+
+        customtkinter.CTkOptionMenu(top, variable=self.selected_expansion,
+                                    values=[The War Within (11.x), Dragonflight (10.x), Shadowlands (9.x)],
+                                    width=200, font=FONT_MAIN, command=self.on_change_exp).pack(side=left, padx=5)
+
+        if self.icon_settings
+            customtkinter.CTkButton(top, text=, image=self.icon_settings, width=40, fg_color=#424242,
+                                    command=self.open_settings).pack(side=right, padx=5)
+        else
+            customtkinter.CTkButton(top, text=⚙️, width=40, fg_color=#424242, font=(Segoe UI, 20),
+                                    command=self.open_settings).pack(side=right, padx=5)
+
+        self.btn_scan = customtkinter.CTkButton(top, text=self.t(scan_btn), font=FONT_BOLD,
+                                                fg_color=COLOR_BLUE, hover_color=COLOR_YELLOW,
+                                                text_color=COLOR_TEXT_BTN,
+                                                command=self.start_scan)
+        self.btn_scan.pack(side=right, padx=5)
+
+        btn_play = customtkinter.CTkButton(top, text=self.t(play_btn), width=100, font=FONT_BOLD,
+                                           fg_color=COLOR_GREEN, hover_color=#388E3C,
+                                           text_color=COLOR_TEXT_BTN,
+                                           command=self.launch_game)
+        btn_play.pack(side=right, padx=10)
+
+        ctrl_frame = customtkinter.CTkFrame(self, fg_color=transparent)
+        ctrl_frame.grid(row=1, column=0, sticky=ew, padx=10, pady=(0, 5))
+
+        preset_var = tk.StringVar(value=PvP Pack)
+        customtkinter.CTkOptionMenu(ctrl_frame, variable=preset_var, values=list(PRESETS.keys()), font=FONT_MAIN,
+                                    width=150).pack(side=left, padx=5)
+
+        def install_preset()
+            addons = PRESETS.get(preset_var.get(), [])
+            queue = []
+            for name in addons
+                if name in ONLINE_CACHE and ONLINE_CACHE[name][url]
+                    queue.append((name, ONLINE_CACHE[name][url], ONLINE_CACHE[name][ver]))
+            if queue
+                self.set_temporary_status(fInstalling {preset_var.get()}..., COLOR_YELLOW)
+                threading.Thread(target=self.batch_install, args=(queue,)).start()
+
+        customtkinter.CTkButton(ctrl_frame, text=self.t(btn_install_pack), font=FONT_BOLD, fg_color=COLOR_BLUE,
+                                hover_color=COLOR_YELLOW, text_color=COLOR_TEXT_BTN, command=install_preset).pack(
+            side=left, padx=5)
+        customtkinter.CTkSwitch(ctrl_frame, text=self.t(switch_auto_update), variable=self.auto_update_enabled,
+                                font=FONT_MAIN, command=self.save_settings).pack(side=left, padx=20)
+
+        self.btn_batch = customtkinter.CTkButton(ctrl_frame, text=f{self.t('btn_batch_install')} (0), font=FONT_BOLD,
+                                                 fg_color=COLOR_GREEN, text_color=COLOR_TEXT_BTN, state=disabled,
+                                                 command=self.install_selected_batch)
+        self.btn_batch.pack(side=right, padx=5)
+
+        mid = customtkinter.CTkFrame(self, fg_color=transparent)
+        mid.grid(row=2, column=0, sticky=ew, padx=10, pady=(0, 5))
+
+        customtkinter.CTkEntry(mid, textvariable=self.search_var, font=FONT_MAIN,
+                               placeholder_text=self.t(search_placeholder), width=300).pack(side=left, padx=5)
+
+        self.btn_search_web = customtkinter.CTkButton(mid, text=self.t(btn_search_web), font=FONT_BOLD, width=100,
+                                                      fg_color=#424242, command=self.open_web_search)
+
+        self.progress_bar = customtkinter.CTkProgressBar(mid, width=400, mode=determinate, progress_color=COLOR_GREEN)
+        self.progress_bar.set(0)
+        self.progress_bar.pack(side=right, padx=5, pady=5)
+
+        self.header_frame = customtkinter.CTkFrame(self, fg_color=COLOR_HEADER_BG, height=40, corner_radius=6)
+        self.header_frame.grid(row=3, column=0, sticky=ew, padx=10, pady=(0, 0))
+        self.update_headers()
+
+        self.scroll = customtkinter.CTkScrollableFrame(self, fg_color=transparent)
+        self.scroll.grid(row=4, column=0, sticky=nsew, padx=10, pady=(0, 5))
+        self.list_cont = customtkinter.CTkFrame(self.scroll, fg_color=transparent)
+        self.list_cont.pack(fill=both, expand=True, anchor=n)
+
+        footer = customtkinter.CTkFrame(self, fg_color=transparent, height=30)
+        footer.grid(row=5, column=0, sticky=ew, pady=5, padx=10)
+
+        self.status = customtkinter.CTkLabel(footer, text=self.t(status_ready), text_color=gray, font=FONT_MAIN)
+        self.status.pack(side=left)
+
+        self.lbl_slogan = customtkinter.CTkLabel(footer, text=self.t(slogan), text_color=COLOR_YELLOW,
+                                                 font=(Segoe UI, 14, bold))
+        self.lbl_slogan.place(relx=0.5, rely=0.5, anchor=center)
+
+        ver_color = COLOR_GREEN if self.game_version_str != --- else gray
+        self.lbl_game_ver = customtkinter.CTkLabel(footer, text=f{self.t('lbl_game_ver')} {self.game_version_str},
+                                                   text_color=ver_color, font=(Segoe UI, 12, bold))
+        self.lbl_game_ver.pack(side=right)
+
+    def update_headers(self)
+        for w in self.header_frame.winfo_children() w.destroy()
+        customtkinter.CTkLabel(self.header_frame, text=, width=COL_W_CHECK).pack(side=left, padx=(5, 0))
+        customtkinter.CTkLabel(self.header_frame, text=self.t(header_name), width=COL_W_NAME, anchor=w,
+                               font=FONT_HEADER, text_color=white).pack(side=left, padx=(5, 0))
+        customtkinter.CTkLabel(self.header_frame, text=self.t(header_local), width=COL_W_LOCAL, anchor=center,
+                               font=FONT_HEADER, text_color=white).pack(side=left)
+        customtkinter.CTkLabel(self.header_frame, text=self.t(header_remote), width=COL_W_REMOTE, anchor=center,
+                               font=FONT_HEADER, text_color=white).pack(side=left)
+        customtkinter.CTkLabel(self.header_frame, text=self.t(header_auto), width=COL_W_AUTO, anchor=center,
+                               font=FONT_HEADER, text_color=white).pack(side=left)
+        customtkinter.CTkLabel(self.header_frame, text=self.t(header_action), width=COL_W_ACTION, anchor=center,
+                               font=FONT_HEADER, text_color=white).pack(side=right, padx=(0, 10))
+
+    def open_web_search(self)
+        query = self.search_var.get()
+        if query
+            webbrowser.open(fhttpswww.curseforge.comwowsearchsearch={query})
+
+    def open_settings(self)
+        top = customtkinter.CTkToplevel(self)
+        top.title(self.t(settings_btn))
+        top.geometry(450x750)
+        top.transient(self)
+        top.grab_set()
+        top.configure(fg_color=COLOR_BG_MAIN)
+
+        customtkinter.CTkLabel(top, text=f{APP_VERSION}, font=FONT_MAIN, text_color=gray).pack(pady=(20, 5))
+
+        dev_frame = customtkinter.CTkFrame(top, fg_color=transparent)
+        dev_frame.pack(pady=5)
+        customtkinter.CTkLabel(dev_frame, text=f{self.t('dev_label')} {self.t('author_name')},
+                               text_color=COLOR_YELLOW, font=(Segoe UI, 14, bold)).pack(side=left, padx=5)
+        if self.icon_gerb
+            customtkinter.CTkLabel(dev_frame, text=, image=self.icon_gerb).pack(side=left, padx=5)
+
+        # Language
+        customtkinter.CTkLabel(top, text=self.t(lang_label), font=FONT_BOLD).pack(pady=5)
+
+        def change_lang(choice)
+            self.current_lang = uk if choice == Українська else en
+            self.save_settings()
+            self.title(self.t(title))
+            self.update_headers()
+            self.create_ui()
+            self.refresh_ui_list()
+            top.destroy()
+
+        lang_var = tk.StringVar(value=Українська if self.current_lang == uk else English)
+        customtkinter.CTkOptionMenu(top, variable=lang_var, values=[Українська, English], font=FONT_MAIN,
+                                    command=change_lang).pack(pady=5)
+
+        # Themes
+        customtkinter.CTkLabel(top, text=self.t(lbl_theme), font=FONT_BOLD).pack(pady=5)
+
+        def change_theme(choice)
+            self.current_theme = choice
+            self.save_settings()
+            self.apply_theme_colors(choice)
+            self.create_ui()
+            self.refresh_ui_list()
+            top.destroy()
+
+        theme_var = tk.StringVar(value=self.current_theme)
+        customtkinter.CTkOptionMenu(top, variable=theme_var, values=list(THEMES.keys()), font=FONT_MAIN,
+                                    command=change_theme).pack(pady=5)
+
+        # Startup
+        def toggle_startup()
+            self.set_startup(self.run_on_startup.get())
+            self.save_settings()
+
+        customtkinter.CTkSwitch(top, text=self.t(switch_startup), variable=self.run_on_startup, font=FONT_MAIN,
+                                command=toggle_startup).pack(pady=10)
+
+        # Backup
+        customtkinter.CTkLabel(top, text=Backup  Profile, font=FONT_BOLD, text_color=COLOR_BLUE).pack(pady=(15, 5))
+
+        def backup_act()
+            if not self.addon_path.get() return
+            wtf_path = os.path.join(os.path.dirname(self.addon_path.get()), WTF)
+            if not os.path.exists(wtf_path)
+                messagebox.showerror(Error, WTF folder not found!)
+                return
+            save_path = filedialog.asksaveasfilename(defaultextension=.zip, filetypes=[(Zip files, .zip)])
+            if save_path
+                shutil.make_archive(save_path.replace('.zip', ''), 'zip', wtf_path)
+                messagebox.showinfo(Backup, self.t(msg_backup_ok))
+
+        def export_profile()
+            save_path = filedialog.asksaveasfilename(defaultextension=.json, filetypes=[(JSON files, .json)])
+            if save_path
+                profile_data = {installed self.installed_memory, path self.addon_path.get()}
+                with open(save_path, w) as f json.dump(profile_data, f)
+                messagebox.showinfo(Export, Profile Exported!)
+
+        def import_profile()
+            open_path = filedialog.askopenfilename(filetypes=[(JSON files, .json)])
+            if open_path
+                with open(open_path, r) as f data = json.load(f)
+                self.installed_memory = data.get(installed, {})
+                self.addon_path.set(data.get(path, ))
+                self.save_settings()
+                self.refresh_ui_list()
+                messagebox.showinfo(Import, Profile Imported!)
+
+        btn_frm = customtkinter.CTkFrame(top, fg_color=transparent)
+        btn_frm.pack()
+        customtkinter.CTkButton(btn_frm, text=self.t(btn_backup), font=FONT_MAIN, fg_color=COLOR_GREEN,
+                                command=backup_act).pack(pady=2)
+        customtkinter.CTkButton(btn_frm, text=self.t(btn_export), font=FONT_MAIN, fg_color=COLOR_BLUE,
+                                command=export_profile).pack(pady=2)
+        customtkinter.CTkButton(btn_frm, text=self.t(btn_import), font=FONT_MAIN, fg_color=COLOR_BLUE,
+                                command=import_profile).pack(pady=2)
+
+        # Custom Install
+        customtkinter.CTkLabel(top, text=self.t(lbl_custom_install), font=FONT_BOLD).pack(pady=(15, 5))
+        customtkinter.CTkEntry(top, textvariable=self.custom_url_var, width=300).pack(pady=2)
+
+        def custom_install()
+            url = self.custom_url_var.get()
+            if github.com in url
+                if not url.endswith(.zip) url += archiverefsheadsmaster.zip
+                self.install_logic(url, CustomAddon, Unknown, is_batch=False)
+                top.destroy()
+            else
+                messagebox.showerror(Error, Only GitHub URLs supported for now.)
+
+        customtkinter.CTkButton(top, text=self.t(btn_install_url), font=FONT_MAIN, fg_color=COLOR_YELLOW,
+                                text_color=black, command=custom_install).pack(pady=5)
+
+        # NEW Full Exit Button
+        customtkinter.CTkButton(top, text=self.t(btn_full_exit), font=FONT_MAIN, fg_color=COLOR_RED,
+                                hover_color=COLOR_RED_HOVER, command=self.quit_app).pack(pady=10)
+
+        def show_about()
+            if self.current_lang == uk
+                features_text = (
+                    • Керування аддонами Сканування, встановлення, оновлення та видалення.n
+                    • Пакетне встановлення Вибір галочками та інсталяція одним кліком.n
+                    • Готові набори Пакети для PvP, Рейдів, Хілів або Інтерфейсу.n
+                    • Резервне копіювання Бекап налаштувань (папка WTF).n
+                    • Запуск гри Кнопка 'Грати' прямо з лаунчера.n
+                    • Персоналізація Зміна тем (4 кольори) та мови.n
+                    • Авто-оновлення Оновлення програми та аддонів.
+                )
+                title = Про програму
+            else
+                features_text = (
+                    • Addon Management Scan, install, update, and remove addons.n
+                    • Batch Installation Select multiple addons and install with one click.n
+                    • Presets Curated packs for PvP, Raids, Healers, or Interface.n
+                    • Backup & Restore Backup game settings (WTF folder).n
+                    • Game Launcher 'Play' button launches WoW directly.n
+                    • Personalization Change themes (4 colors) and languages.n
+                    • Auto-Update Self-updating app and auto-update addons.
+                )
+                title = About
+
+            messagebox.showinfo(
+                title,
+                fVOLYA ManagernCreated by {self.t('author_name')}nn{features_text}nnSupport Ukraine! 🇺🇦
+            )
+
+        customtkinter.CTkButton(top, text=self.t(btn_about), font=FONT_MAIN, fg_color=#424242,
+                                command=show_about).pack(pady=5)
+
+    def on_search(self, args)
+        self.refresh_ui_list()
+
+    def select_folder(self)
+        p = filedialog.askdirectory()
+        if p
+            self.addon_path.set(p)
+            self.save_settings()
+            self.refresh_ui_list()
+
+    def start_deep_search(self)
+        self.status.configure(text=self.t(status_searching), text_color=COLOR_YELLOW)
+        self.progress_bar.configure(mode=indeterminate)
+        self.progress_bar.start()
+        threading.Thread(target=self.deep_search_worker).start()
+
+    def deep_search_worker(self)
+        drives = get_available_drives()
+        for drive in drives
+            for root, dirs, files in os.walk(drive)
+                if $Recycle.Bin in root or Windows in root continue
+                candidates = [f for f in files if f.lower().endswith(.exe) and wow in f.lower()]
+                if candidates
+                    for candidate in candidates
+                        full_path = os.path.join(root, candidate)
+                        ver = get_file_version_info(full_path)
+                        if ver
+                            potential_paths = [
+                                os.path.join(root, Interface, AddOns),
+                                os.path.join(os.path.dirname(root), Interface, AddOns),
+                                os.path.join(root, _retail_, Interface, AddOns)
+                            ]
+                            valid_path = next((p for p in potential_paths if os.path.exists(p)),
+                                              os.path.join(root, Interface, AddOns))
+                            maj = ver.split(.)[0]
+                            exp = next((n for n, p in EXPANSIONS.items() if p == maj), The War Within (11.x))
+                            self.game_exe_path = full_path
+                            self.after(0, lambda p=valid_path, e=exp, v=ver self.apply_auto_found(p, e, v))
+                            return
+        self.after(0, self.finish_deep_search_fail)
+
+    def apply_auto_found(self, path, exp, ver)
+        self.addon_path.set(path)
+        self.selected_expansion.set(exp)
+        self.game_version_str = ver
+        self.save_settings()
+        self.refresh_ui_list()
+        self.progress_bar.stop()
+        self.progress_bar.configure(mode=determinate, value=0)
+        self.set_temporary_status(f{self.t('msg_auto_success')} {path}, COLOR_GREEN)
+        self.lbl_game_ver.configure(text=f{self.t('lbl_game_ver')} {ver}, text_color=COLOR_GREEN)
+
+    def finish_deep_search_fail(self)
+        self.progress_bar.stop()
+        self.progress_bar.configure(mode=determinate, value=0)
+        self.set_temporary_status(self.t(msg_auto_fail), COLOR_RED)
+
+    def on_change_exp(self, c)
+        self.save_settings()
+        global ONLINE_CACHE
+        ONLINE_CACHE = {}
+        self.save_cache()
+        self.refresh_ui_list()
+
+    def get_local_ver(self, folder)
+        p = os.path.join(self.addon_path.get(), folder, f{folder}.toc)
+        if os.path.exists(p)
+            try
+                with open(p, r, encoding=utf-8, errors=ignore) as f
+                    for l in f
+                        if l.startswith(## Version)
+                            v = l.split(, 1)[1].strip()
+                            return v[20] + ... if len(v)  20 else v
+            except Exception
+                pass
+        return None
+
+    def start_scan(self)
+        if self.btn_scan
+            self.btn_scan.configure(state=disabled, text=⏳)
+        self.status.configure(text=self.t(status_scanning))
+        self.progress_bar.set(0)
+        threading.Thread(target=self.scan_worker).start()
+
+    def scan_worker(self)
+        global ONLINE_CACHE
+        prefix = EXPANSIONS[self.selected_expansion.get()]
+        total = len(ADDON_CATALOG)
+        headers = {'User-Agent' random.choice(USER_AGENTS)}
+        auto_update_queue = []
+
+        for i, (name, data) in enumerate(ADDON_CATALOG.items())
+            self.progress_bar.set((i + 1)  total)
+
+            is_ignored = name in self.ignored_addons
+
+            if name in ONLINE_CACHE
+                res = ONLINE_CACHE[name]
+            else
+                provider = data.get(provider, github)
+                res = {ver None, url None}
+                try
+                    if provider == github
+                        res = self.check_github(data[repo], prefix, headers)
+                    elif provider == tukui
+                        res = self.check_tukui(data[id], headers)
+                    elif provider == wago
+                        res = self.check_wago(data[slug], prefix, headers)
+                except Exception
+                    pass
+                ONLINE_CACHE[name] = res
+
+            if self.auto_update_enabled.get() and not is_ignored and res[url]
+                loc = self.get_local_ver(data[match])
+                if loc and res[ver] and str(res[ver]) not in str(loc)
+                    if self.installed_memory.get(name) != res[ver]
+                        auto_update_queue.append((name, res[url], res[ver]))
+
+        self.save_cache()
+        self.after(0, lambda self.finish_scan(auto_update_queue))
+
+    @staticmethod
+    def check_github(repo, prefix, headers)
+        api = fhttpsapi.github.comrepos{repo}releases
+        req = urllib.request.Request(api, headers=headers)
+        with urllib.request.urlopen(req) as r
+            rels = json.loads(r.read())
+            for rel in rels
+                tag = rel[tag_name]
+                clean = tag.lower().replace(v, ).replace(release, ).strip()
+                if clean.startswith(prefix)
+                    url = rel[zipball_url]
+                    for a in rel.get(assets, [])
+                        if a[name].endswith(.zip)
+                            url = a[browser_download_url]
+                            break
+                    return {ver tag, url url}
+            if prefix == 11 and rels
+                latest = rels[0]
+                url = latest[zipball_url]
+                for a in latest.get(assets, [])
+                    if a[name].endswith(.zip)
+                        url = a[browser_download_url]
+                        break
+                return {ver latest[tag_name], url url}
+        return {ver None, url None}
+
+    @staticmethod
+    def check_tukui(ui_id, headers)
+        url = httpswww.tukui.orgapi.phpui=elvui if ui_id == -1 else httpswww.tukui.orgapi.phpui=tukui
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req) as r
+            data = json.loads(r.read())
+            if data.get(version)
+                return {ver data.get(version), url data.get(url)}
+        return {ver None, url None}
+
+    @staticmethod
+    def check_wago(slug, prefix, headers)
+        url_ver = fhttpsaddons.wago.ioapiprojects{slug}versionstability=stable
+        req_ver = urllib.request.Request(url_ver, headers=headers)
+        with urllib.request.urlopen(req_ver) as r
+            versions = json.loads(r.read())
+            for v in versions
+                supported_vers = v.get(supported_retail_patches, []) or v.get(gameVersion, [])
+                for sv in supported_vers
+                    if sv.startswith(prefix)
+                        return {ver v.get(version), url v.get(url)}
+            if prefix == 11 and len(versions)  0
+                return {ver versions[0].get(version), url versions[0].get(url)}
+        return {ver None, url None}
+
+    def finish_scan(self, update_queue=None)
+        self.refresh_ui_list()
+        if update_queue
+            self.set_temporary_status(fAuto-Update {len(update_queue)}..., COLOR_YELLOW)
+            threading.Thread(target=self.batch_install, args=(update_queue,)).start()
+        else
+            if self.btn_scan
+                self.btn_scan.configure(state=normal, text=self.t(scan_btn))
+            self.set_temporary_status(self.t(status_done))
+            self.progress_bar.set(0)
+
+    def batch_install(self, queue)
+        for name, url, ver in queue
+            self.install_logic(url, name, ver, is_batch=True)
+        self.after(0, lambda self.btn_scan.configure(state=normal))
+        self.after(0, lambda self.set_temporary_status(Auto-Update Done!, COLOR_GREEN))
+        self.after(0, lambda self.progress_bar.set(0))
+
+    def update_batch_button(self)
+        count = sum(1 for var in self.batch_vars.values() if var.get())
+        if self.btn_batch
+            self.btn_batch.configure(text=f{self.t('btn_batch_install')} ({count}),
+                                     state=normal if count  0 else disabled)
+
+    def install_selected_batch(self)
+        selected = [name for name, var in self.batch_vars.items() if var.get()]
+        if not selected return
+        if len(selected)  5
+            messagebox.showwarning(Limit, Max 5 addons at once!)
+            return
+        queue = []
+        for name in selected
+            if name in ONLINE_CACHE and ONLINE_CACHE[name][url]
+                queue.append((name, ONLINE_CACHE[name][url], ONLINE_CACHE[name][ver]))
+        if queue
+            self.set_temporary_status(fInstalling {len(queue)}..., COLOR_YELLOW)
+            threading.Thread(target=self.batch_install, args=(queue,)).start()
+
+    def toggle_auto_update(self, name)
+        if name in self.ignored_addons
+            self.ignored_addons.remove(name)
+        else
+            self.ignored_addons.add(name)
+        self.save_settings()
+
+    def toggle_group(self, group_key)
+        self.group_states[group_key] = not self.group_states.get(group_key, True)
+        self.save_settings()
+        self.refresh_ui_list()
+
+    def toggle_info_row(self, frame, name)
+        if frame.winfo_viewable()
+            frame.pack_forget()
+        else
+            frame.pack(fill=x, padx=10, pady=(0, 5))
+
+    def refresh_ui_list(self)
+        for w in self.list_cont.winfo_children() w.destroy()
+        self.batch_vars = {}
+        self.auto_vars = {}
+
+        search_txt = self.search_var.get().lower()
+
+        if search_txt and not any(search_txt in n.lower() for n in ADDON_CATALOG)
+            self.btn_search_web.pack(side=left, padx=10)
+        else
+            self.btn_search_web.pack_forget()
+
+        groups = {g [] for g in GROUP_ORDER}
+        for n, d in ADDON_CATALOG.items()
+            if search_txt and (search_txt not in n.lower()) continue
+            groups[d.get(group)].append(n)
+
+        row_idx = 0
+        for g_key in GROUP_ORDER
+            lst = groups.get(g_key, [])
+            if not lst and not search_txt continue
+            if not lst and search_txt continue
+
+            is_expanded = self.group_states.get(g_key, True) or bool(search_txt)
+            arrow = ▼ if is_expanded else ▶
+
+            group_frame = customtkinter.CTkFrame(self.list_cont, fg_color=COLOR_GROUP_BG, height=35, corner_radius=0)
+            group_frame.pack(fill=x, pady=0)
+            group_frame.pack_propagate(False)
+            # Беремо переклад або саму назву, якщо перекладу немає
+            group_name = TEXTS[self.current_lang].get(g_key, g_key)
+            text = f  {arrow}  {group_name},
+            btn_grp = customtkinter.CTkButton(
+                group_frame, text=f  {arrow}  {self.t(g_key)},
+                fg_color=transparent, hover_color=COLOR_GROUP_HOVER,
+                anchor=w, font=FONT_HEADER, text_color=COLOR_TEXT_WHITE,
+                command=lambda k=g_key self.toggle_group(k)
+            )
+            btn_grp.pack(fill=both, expand=True)
+
+            if is_expanded
+                for name in lst
+                    loc = self.get_local_ver(ADDON_CATALOG[name][match])
+                    rem = ONLINE_CACHE.get(name, {ver ---, url None})
+                    bg_col = COLOR_BG_ROW_1 if row_idx % 2 == 0 else COLOR_BG_ROW_2
+                    self.draw_row(name, loc, rem[ver], rem[url], bg_col)
+                    row_idx += 1
+        self.update_batch_button()
+
+    def draw_row(self, name, local, remote, url, bg_color)
+        container = customtkinter.CTkFrame(self.list_cont, fg_color=transparent)
+        container.pack(fill=x)
+
+        r = customtkinter.CTkFrame(container, fg_color=bg_color, height=ROW_HEIGHT, corner_radius=0)
+        r.pack(fill=x, pady=0)
+        r.pack_propagate(False)
+
+        var = tk.BooleanVar()
+        self.batch_vars[name] = var
+        chk = customtkinter.CTkCheckBox(r, text=, width=20, variable=var, command=self.update_batch_button,
+                                        border_color=THEMES[self.current_theme][text])
+        chk.pack(side=left, padx=(10, 5))
+
+        info_frame = customtkinter.CTkFrame(container, fg_color=COLOR_INFO_BG)
+        lang_key = desc_uk if self.current_lang == uk else desc_en
+        desc_text = ADDON_CATALOG.get(name, {}).get(lang_key, No description)
+        customtkinter.CTkLabel(info_frame, text=desc_text, text_color=gray, anchor=w, justify=left,
+                               font=FONT_SMALL).pack(fill=x, padx=40, pady=5)
+
+        name_lbl = customtkinter.CTkLabel(r, text=name, width=COL_W_NAME, anchor=w, cursor=hand2,
+                                          text_color=#4FC3F7, font=FONT_MAIN)
+        name_lbl.pack(side=left, padx=(5, 0))
+        name_lbl.bind(Button-1, lambda e self.toggle_info_row(info_frame, name))
+
+        ver_frame = customtkinter.CTkFrame(r, fg_color=transparent, width=COL_W_LOCAL)
+        ver_frame.pack(side=left)
+
+        is_rem_ok = (remote is not None and remote != ---)
+        status_txt = 
+        status_col = gray
+        remote_display_text = remote if remote else self.t(msg_error)
+        if remote == --- remote_display_text = ---
+
+        if local and is_rem_ok
+            if local != remote and str(remote) not in str(local) and str(local) not in str(remote)
+                status_txt = f ({self.t('lbl_outdated')})
+                status_col = COLOR_YELLOW
+            else
+                status_txt = f ({self.t('lbl_actual')})
+                status_col = COLOR_GREEN
+        if not is_rem_ok
+            status_txt = 
+            status_col = gray
+
+        full_ver_txt = (local or —) + status_txt
+        customtkinter.CTkLabel(ver_frame, text=full_ver_txt, text_color=status_col, font=FONT_SMALL).pack(side=top,
+                                                                                                          anchor=center)
+
+        rem_col = COLOR_YELLOW if is_rem_ok else gray
+        customtkinter.CTkLabel(r, text=remote_display_text, width=COL_W_REMOTE, anchor=center, text_color=rem_col,
+                               font=FONT_MAIN).pack(side=left)
+
+        auto_var = tk.BooleanVar(value=(name not in self.ignored_addons))
+        self.auto_vars[name] = auto_var
+        switch = customtkinter.CTkSwitch(r, text=, width=40, variable=auto_var,
+                                         command=lambda n=name self.toggle_auto_update(n))
+        switch.pack(side=left, padx=10)
+
+        action_frame = customtkinter.CTkFrame(r, fg_color=transparent, width=COL_W_ACTION, height=ROW_HEIGHT)
+        action_frame.pack_propagate(False)
+        action_frame.pack(side=right, padx=(0, 10))
+
+        if url and is_rem_ok
+            txt = self.t(btn_update) if local else self.t(btn_install)
+            known_installed = self.installed_memory.get(name)
+            is_up_to_date = False
+            if local and remote and (str(local) in str(remote) or str(remote) in str(local))
+                is_up_to_date = True
+            elif known_installed and known_installed == remote
+                is_up_to_date = True
+
+            if is_up_to_date
+                customtkinter.CTkButton(action_frame, text=self.t(btn_ok), width=80, height=24,
+                                        fg_color=COLOR_GREEN, state=disabled, text_color_disabled=COLOR_TEXT_BTN,
+                                        font=FONT_BOLD).pack(side=left, padx=5)
+            else
+                btn = customtkinter.CTkButton(action_frame, text=txt, width=80, height=24,
+                                              fg_color=COLOR_BLUE, hover_color=COLOR_YELLOW,
+                                              text_color=COLOR_TEXT_BTN, font=FONT_BOLD,
+                                              command=lambda self.install(url, name, remote))
+                btn.pack(side=left, padx=5)
+                self.setup_hover_effect(btn)
+        else
+            customtkinter.CTkButton(action_frame, text=self.t(btn_no_data), width=80, height=24, state=disabled,
+                                    fg_color=COLOR_DISABLED, text_color=gray, font=FONT_MAIN).pack(side=left,
+                                                                                                     padx=5)
+
+        if local
+            customtkinter.CTkButton(action_frame, text=self.t(btn_delete), width=80, height=24,
+                                    fg_color=COLOR_RED, hover_color=COLOR_RED_HOVER,
+                                    text_color=COLOR_TEXT_BTN, font=FONT_BOLD,
+                                    command=lambda self.delete_addon(name)).pack(side=left, padx=5)
+
+    def install(self, url, name, remote_ver, is_batch=False)
+        self.status.configure(text=f{self.t('status_installing')} {name}..., text_color=COLOR_YELLOW)
+        if self.btn_scan
+            self.btn_scan.configure(state=disabled)
+        threading.Thread(target=self.install_logic, args=(url, name, remote_ver, is_batch)).start()
+
+    def install_logic(self, url, name, remote_ver, is_batch=False)
+        try
+            req = urllib.request.Request(url, headers={'User-Agent' 'Mozilla5.0'})
+            with urllib.request.urlopen(req) as response
+                total_size = int(response.info().get('Content-Length', 0))
+                downloaded = 0
+                chunk_size = 8192
+                data_io = io.BytesIO()
+                while True
+                    chunk = response.read(chunk_size)
+                    if not chunk break
+                    data_io.write(chunk)
+                    downloaded += len(chunk)
+                    if total_size  0 and not is_batch
+                        self.after(0, lambda p=downloaded  total_size self.progress_bar.set(p))
+
+            temp = os.path.join(self.addon_path.get(), _temp)
+            if os.path.exists(temp) shutil.rmtree(temp)
+            os.makedirs(temp, exist_ok=True)
+            with zipfile.ZipFile(data_io) as z
+                z.extractall(temp)
+            src = temp
+            items = os.listdir(temp)
+            if len(items) == 1 and os.path.isdir(os.path.join(temp, items[0]))
+                if name not in [ElvUI, TukUI, Cell, VuhDo, Deadly Boss Mods] src = os.path.join(temp,
+                                                                                                           items[0])
+            dst = self.addon_path.get()
+            for item in os.listdir(src)
+                if item.startswith(.) or readme in item.lower() continue
+                s = os.path.join(src, item);
+                d = os.path.join(dst, item)
+                if os.path.exists(d)
+                    if os.path.isdir(d)
+                        shutil.rmtree(d)
+                    else
+                        os.remove(d)
+                if os.path.isdir(s)
+                    shutil.copytree(s, d)
+                else
+                    shutil.copy2(s, d)
+            shutil.rmtree(temp)
+
+            self.installed_memory[name] = remote_ver
+            self.save_settings()
+            RECENTLY_UPDATED.add(name)
+
+            if not is_batch
+                self.after(0, lambda self.set_temporary_status(f✅ {name} {self.t('msg_install_ok')}, COLOR_GREEN))
+                self.after(0, self.refresh_ui_list)
+
+        except Exception as e
+            if not is_batch
+                if Permission in str(e) or access in str(e)
+                    self.after(0, lambda messagebox.showwarning(Error, self.t(msg_close_wow)))
+                else
+                    self.after(0, lambda messagebox.showerror(Error, str(e)))
+        finally
+            if not is_batch
+                if self.btn_scan
+                    self.after(0, lambda self.btn_scan.configure(state=normal))
+                self.after(0, lambda self.progress_bar.set(0))
+
+    def delete_addon(self, name)
+        if not messagebox.askyesno(self.t(btn_delete_title), f{self.t('btn_delete_confirm')} {name}) return
+        match_folder = ADDON_CATALOG[name][match]
+        main_dir = os.path.join(self.addon_path.get(), match_folder)
+        extras = ADDON_CATALOG[name].get(extra_folders, [])
+        try
+            if os.path.exists(main_dir) shutil.rmtree(main_dir)
+            for extra in extras
+                extra_path = os.path.join(self.addon_path.get(), extra)
+                if os.path.exists(extra_path) shutil.rmtree(extra_path)
+
+            if name in self.installed_memory
+                del self.installed_memory[name]
+                self.save_settings()
+            if name in RECENTLY_UPDATED RECENTLY_UPDATED.remove(name)
+
+            self.refresh_ui_list()
+        except Exception as e
+            messagebox.showerror(Error, str(e))
+
+    # --- TRAY LOGIC ---
+    def minimize_to_tray(self)
+        if pystray
+            self.withdraw()
+            image = Image.open(assetsicon.ico) if os.path.exists(assetsicon.ico) else Image.new('RGB', (64, 64),
+                                                                                                      color='blue')
+
+            menu = (
+                item(self.t(tray_show), self.show_from_tray, default=True),
+                item(self.t(tray_exit), self.quit_app)
+            )
+            self.tray_icon = pystray.Icon(VolyaManager, image, Volya Manager, menu)
+            # Запускаємо в окремому потоці
+            threading.Thread(target=self.tray_icon.run).start()
+        else
+            self.iconify()
+
+    def show_from_tray(self)
+        if self.tray_icon
+            self.tray_icon.stop()
+        self.after(0, self.deiconify)
+
+    def quit_app(self)
+        if self.tray_icon
+            self.tray_icon.stop()
+        self.quit()
+
+
+if __name__ == __main__
+    # Спробуємо імпортувати трей, якщо є
+    try
+        import pystray
+        from pystray import MenuItem as item
+    except ImportError
+        pystray = None
+
+    app = AddonManagerApp()
+    app.mainloop()
