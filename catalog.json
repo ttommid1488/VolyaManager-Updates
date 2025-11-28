@@ -1,0 +1,443 @@
+{
+  "Gladius": {
+    "provider": "wago",
+    "slug": "gladius",
+    "match": "Gladius",
+    "group": "group_pvp",
+    "extra_folders": [],
+    "desc_uk": "Фрейми для PvP арени.",
+    "desc_en": "PvP Arena frames."
+  },
+  "OmniBar": {
+    "provider": "github",
+    "repo": "jbb/OmniBar",
+    "match": "OmniBar",
+    "group": "group_pvp",
+    "extra_folders": [],
+    "desc_uk": "Відстежує ворожі кулдауни.",
+    "desc_en": "Tracks enemy cooldowns."
+  },
+  "BigDebuffs": {
+    "provider": "github",
+    "repo": "jordonwd/BigDebuffs",
+    "match": "BigDebuffs",
+    "group": "group_pvp",
+    "extra_folders": [],
+    "desc_uk": "Важливі дебафи на портретах.",
+    "desc_en": "Important debuffs on frames."
+  },
+  "BattleGroundEnemies": {
+    "provider": "wago",
+    "slug": "battlegroundenemies",
+    "match": "BattleGroundEnemies",
+    "group": "group_pvp",
+    "extra_folders": [],
+    "desc_uk": "Список ворогів на БГ.",
+    "desc_en": "BG Enemy list."
+  },
+  "Capping": {
+    "provider": "github",
+    "repo": "BigWigsMods/Capping",
+    "match": "Capping",
+    "group": "group_pvp",
+    "extra_folders": ["Capping_Options"],
+    "desc_uk": "Таймери БГ.",
+    "desc_en": "BG Timers."
+  },
+  "Diminish": {
+    "provider": "github",
+    "repo": "Diminish/Diminish",
+    "match": "Diminish",
+    "group": "group_pvp",
+    "extra_folders": [],
+    "desc_uk": "DR (Diminishing Returns) трекер.",
+    "desc_en": "DR (Diminishing Returns) tracker."
+  },
+  "OmniCD": {
+    "provider": "github",
+    "repo": "OmniCD/OmniCD",
+    "match": "OmniCD",
+    "group": "group_pvp",
+    "extra_folders": [],
+    "desc_uk": "Відстежує кд союзників.",
+    "desc_en": "Tracks ally CDs."
+  },
+  "sArena": {
+    "provider": "github",
+    "repo": "sArena/sArena",
+    "match": "sArena",
+    "group": "group_pvp",
+    "extra_folders": [],
+    "desc_uk": "Альтернатива Gladius.",
+    "desc_en": "Alternative to Gladius."
+  },
+  "Deadly Boss Mods": {
+    "provider": "github",
+    "repo": "DeadlyBossMods/DeadlyBossMods",
+    "match": "DBM-Core",
+    "group": "group_raid",
+    "extra_folders": ["DBM-GUI", "DBM-StatusBarTimers", "DBM-DefaultSkin", "DBM-Challenges", "DBM-Raids-WarWithin"],
+    "desc_uk": "Бос-мод для рейдів.",
+    "desc_en": "Raid boss mods."
+  },
+  "BigWigs": {
+    "provider": "github",
+    "repo": "BigWigsMods/BigWigs",
+    "match": "BigWigs",
+    "group": "group_raid",
+    "extra_folders": ["LittleWigs", "BigWigs_Core", "BigWigs_Options", "BigWigs_Plugins"],
+    "desc_uk": "Легка альтернатива DBM.",
+    "desc_en": "Lightweight boss mod."
+  },
+  "GTFO": {
+    "provider": "github",
+    "repo": "Zensunim/GTFO",
+    "match": "GTFO",
+    "group": "group_raid",
+    "extra_folders": [],
+    "desc_uk": "Звук при стані у вогні.",
+    "desc_en": "Sound alert for fire."
+  },
+  "Mythic Dungeon Tools": {
+    "provider": "github",
+    "repo": "Nnoggie/MythicDungeonTools",
+    "match": "MythicDungeonTools",
+    "group": "group_raid",
+    "extra_folders": [],
+    "desc_uk": "Планування ключів M+.",
+    "desc_en": "M+ route planner."
+  },
+  "Method Raid Tools": {
+    "provider": "github",
+    "repo": "Method/Method-Raid-Tools",
+    "match": "MethodRaidTools",
+    "group": "group_raid",
+    "extra_folders": ["MRT_Notes", "MRT_RaidCooldowns"],
+    "desc_uk": "Інструменти для РЛ.",
+    "desc_en": "Tools for Raid Leaders (RL)."
+  },
+  "Exorsus Raid Tools": {
+    "provider": "github",
+    "repo": "Exorsus/Exorsus-Raid-Tools",
+    "match": "ExorsusRaidTools",
+    "group": "group_raid",
+    "extra_folders": [],
+    "desc_uk": "Просунутий інструмент для рейдів.",
+    "desc_en": "Advanced raid tool."
+  },
+  "Angry Keystones": {
+    "provider": "github",
+    "repo": "AngryKeystones/AngryKeystones",
+    "match": "AngryKeystones",
+    "group": "group_raid",
+    "extra_folders": [],
+    "desc_uk": "Покращений M+ таймер.",
+    "desc_en": "Improved M+ timer."
+  },
+  "Cell": {
+    "provider": "wago",
+    "slug": "cell",
+    "match": "Cell",
+    "group": "group_frames",
+    "extra_folders": [],
+    "desc_uk": "Рейд-фрейми (таблиця).",
+    "desc_en": "Grid raid frames."
+  },
+  "VuhDo": {
+    "provider": "wago",
+    "slug": "vuhdo",
+    "match": "VuhDo",
+    "group": "group_frames",
+    "extra_folders": ["VuhDoOptions"],
+    "desc_uk": "Хіл через кліки.",
+    "desc_en": "Click-to-heal."
+  },
+  "HealBot": {
+    "provider": "wago",
+    "slug": "healbot-continued",
+    "match": "HealBot",
+    "group": "group_frames",
+    "extra_folders": [],
+    "desc_uk": "Класичний аддон для хілу.",
+    "desc_en": "Classic healing addon."
+  },
+  "Grid2": {
+    "provider": "github",
+    "repo": "Grid2/Grid2",
+    "match": "Grid2",
+    "group": "group_frames",
+    "extra_folders": [],
+    "desc_uk": "Розширена сітка рейд-фреймів.",
+    "desc_en": "Advanced grid raid frames."
+  },
+  "Clique": {
+    "provider": "github",
+    "repo": "Clique/Clique",
+    "match": "Clique",
+    "group": "group_frames",
+    "extra_folders": [],
+    "desc_uk": "Прив'язка заклинань до кліків.",
+    "desc_en": "Click-to-cast binding."
+  },
+  "Shadowed Unit Frames": {
+    "provider": "github",
+    "repo": "ShadowedUnitFrames/ShadowedUnitFrames",
+    "match": "ShadowedUnitFrames",
+    "group": "group_frames",
+    "extra_folders": [],
+    "desc_uk": "Покращені юніт-фрейми.",
+    "desc_en": "Improved unit frames."
+  },
+  "PitBull Unit Frames": {
+    "provider": "github",
+    "repo": "PitBullUnitFrames/PitBullUnitFrames",
+    "match": "PitBullUnitFrames",
+    "group": "group_frames",
+    "extra_folders": [],
+    "desc_uk": "Кастомні юніт-фрейми.",
+    "desc_en": "Custom unit frames."
+  },
+  "Details!": {
+    "provider": "github",
+    "repo": "Tercioo/Details-Damage-Meter",
+    "match": "Details",
+    "group": "group_stats",
+    "extra_folders": ["Details_TinyThreat", "Details_Streamer", "Details_RaidCheck", "Details_DataStorage", "Details_EncounterDetails"],
+    "desc_uk": "ДПС метр.",
+    "desc_en": "DPS Meter."
+  },
+  "Raider.IO": {
+    "provider": "github",
+    "repo": "RaiderIO/RaiderIO-Addon",
+    "match": "RaiderIO",
+    "group": "group_stats",
+    "extra_folders": ["RaiderIO_DB_EU_R", "RaiderIO_DB_EU_M"],
+    "desc_uk": "Рейтинг M+.",
+    "desc_en": "M+ Score."
+  },
+  "Skada": {
+    "provider": "github",
+    "repo": "Skada/Skada",
+    "match": "Skada",
+    "group": "group_stats",
+    "extra_folders": [],
+    "desc_uk": "Альтернативний DPS/HPS метр.",
+    "desc_en": "Alternative DPS/HPS meter."
+  },
+  "Recount": {
+    "provider": "github",
+    "repo": "TuxSkins/Recount",
+    "match": "Recount",
+    "group": "group_stats",
+    "extra_folders": [],
+    "desc_uk": "Класичний вимірювач DPS/HPS.",
+    "desc_en": "Classic DPS/HPS meter."
+  },
+  "ElvUI": {
+    "provider": "tukui",
+    "id": "-1",
+    "match": "ElvUI",
+    "group": "group_ui",
+    "extra_folders": ["ElvUI_OptionsUI", "ElvUI_Libraries"],
+    "desc_uk": "Повна заміна UI.",
+    "desc_en": "Full UI replacement."
+  },
+  "TukUI": {
+    "provider": "tukui",
+    "id": "1",
+    "match": "TukUI",
+    "group": "group_ui",
+    "extra_folders": ["TukUI_Config"],
+    "desc_uk": "Мінімалістичний UI.",
+    "desc_en": "Minimalist UI."
+  },
+  "Plater": {
+    "provider": "github",
+    "repo": "Tercioo/Plater-Nameplates",
+    "match": "Plater",
+    "group": "group_ui",
+    "extra_folders": [],
+    "desc_uk": "Неймплейти.",
+    "desc_en": "Nameplates."
+  },
+  "WeakAuras": {
+    "provider": "github",
+    "repo": "WeakAuras/WeakAuras2",
+    "match": "WeakAuras",
+    "group": "group_ui",
+    "extra_folders": ["WeakAurasOptions", "WeakAurasModelPaths", "WeakAurasTemplates", "WeakAurasArchive"],
+    "desc_uk": "Аури та індикатори.",
+    "desc_en": "Custom auras."
+  },
+  "Bartender4": {
+    "provider": "github",
+    "repo": "Nevcairiel/Bartender4",
+    "match": "Bartender4",
+    "group": "group_ui",
+    "extra_folders": [],
+    "desc_uk": "Налаштування панелей.",
+    "desc_en": "Action bars customization."
+  },
+  "Dominos": {
+    "provider": "github",
+    "repo": "Dominos/Dominos",
+    "match": "Dominos",
+    "group": "group_ui",
+    "extra_folders": [],
+    "desc_uk": "Альтернатива Bartender4.",
+    "desc_en": "Bartender4 alternative."
+  },
+  "MoveAnything": {
+    "provider": "github",
+    "repo": "MoveAnything/MoveAnything",
+    "match": "MoveAnything",
+    "group": "group_ui",
+    "extra_folders": [],
+    "desc_uk": "Переміщення елементів UI.",
+    "desc_en": "Move UI elements."
+  },
+  "TipTac": {
+    "provider": "github",
+    "repo": "ShadowedUnitFrames/TipTac",
+    "match": "TipTac",
+    "group": "group_ui",
+    "extra_folders": [],
+    "desc_uk": "Кастомізація підказок.",
+    "desc_en": "Tooltip customization."
+  },
+  "Masque": {
+    "provider": "github",
+    "repo": "StormFX/Masque",
+    "match": "Masque",
+    "group": "group_ui",
+    "extra_folders": [],
+    "desc_uk": "Зміна скінів іконок.",
+    "desc_en": "Icon skinning."
+  },
+  "OmniCC": {
+    "provider": "github",
+    "repo": "OmniCC/OmniCC",
+    "match": "OmniCC",
+    "group": "group_ui",
+    "extra_folders": [],
+    "desc_uk": "Цифрові кулдауни.",
+    "desc_en": "Digital cooldowns."
+  },
+  "Quartz": {
+    "provider": "github",
+    "repo": "Nevcairiel/Quartz",
+    "match": "Quartz",
+    "group": "group_ui",
+    "extra_folders": [],
+    "desc_uk": "Кастбар.",
+    "desc_en": "Cast bar."
+  },
+  "Leatrix Plus": {
+    "provider": "github",
+    "repo": "leatrix/leatrix-plus",
+    "match": "Leatrix_Plus",
+    "group": "group_ui",
+    "extra_folders": [],
+    "desc_uk": "Покращення QoL.",
+    "desc_en": "Quality of Life improvements."
+  },
+  "Titan Panel": {
+    "provider": "github",
+    "repo": "TitanPanel/TitanPanel",
+    "match": "TitanPanel",
+    "group": "group_ui",
+    "extra_folders": [],
+    "desc_uk": "Інформаційна панель.",
+    "desc_en": "Info bar."
+  },
+  "Bagnon": {
+    "provider": "github",
+    "repo": "Jaliborc/Bagnon",
+    "match": "Bagnon",
+    "group": "group_bag",
+    "extra_folders": ["Bagnon_Config", "Bagnon_GuildBank", "Bagnon_VoidStorage"],
+    "desc_uk": "Сумки в одному вікні.",
+    "desc_en": "All-in-one bags."
+  },
+  "Auctionator": {
+    "provider": "github",
+    "repo": "Auctionator/Auctionator",
+    "match": "Auctionator",
+    "group": "group_bag",
+    "extra_folders": [],
+    "desc_uk": "Аукціон.",
+    "desc_en": "Auction helper."
+  },
+  "Altoholic": {
+    "provider": "github",
+    "repo": "Altoholic/Altoholic",
+    "match": "Altoholic",
+    "group": "group_bag",
+    "extra_folders": [],
+    "desc_uk": "Інвентар всіх персонажів.",
+    "desc_en": "All chars inventory tracker."
+  },
+  "Postal": {
+    "provider": "github",
+    "repo": "jandost/Postal",
+    "match": "Postal",
+    "group": "group_bag",
+    "extra_folders": [],
+    "desc_uk": "Покращення пошти.",
+    "desc_en": "Mailbox utility."
+  },
+  "HandyNotes": {
+    "provider": "github",
+    "repo": "Nevcairiel/HandyNotes",
+    "match": "HandyNotes",
+    "group": "group_map",
+    "extra_folders": [],
+    "desc_uk": "Скарби на карті.",
+    "desc_en": "Map treasures."
+  },
+  "TomTom": {
+    "provider": "github",
+    "repo": "Togotech/TomTom",
+    "match": "TomTom",
+    "group": "group_map",
+    "extra_folders": [],
+    "desc_uk": "Навігація.",
+    "desc_en": "Navigation."
+  },
+  "Routes": {
+    "provider": "github",
+    "repo": "TomTom/Routes",
+    "match": "Routes",
+    "group": "group_map",
+    "extra_folders": [],
+    "desc_uk": "Створення маршрутів.",
+    "desc_en": "Create farming routes."
+  },
+  "Gathermate2": {
+    "provider": "github",
+    "repo": "Gathermate2/Gathermate2",
+    "match": "Gathermate2",
+    "group": "group_map",
+    "extra_folders": [],
+    "desc_uk": "Запис вузлів збору.",
+    "desc_en": "Record gathering nodes."
+  },
+  "World Quest Tracker": {
+    "provider": "github",
+    "repo": "j-e-a-l/WorldQuestTracker",
+    "match": "WorldQuestTracker",
+    "group": "group_map",
+    "extra_folders": [],
+    "desc_uk": "Відстеження локальних завдань.",
+    "desc_en": "Local quest tracker."
+  },
+  "Rarity": {
+    "provider": "github",
+    "repo": "Rarities/Rarity",
+    "match": "Rarity",
+    "group": "group_map",
+    "extra_folders": [],
+    "desc_uk": "Відстеження дропу рідкісних речей.",
+    "desc_en": "Rare drop tracker."
+  }
+}
