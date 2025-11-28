@@ -1,0 +1,1 @@
+Оновлення для VOLYA Manager.
